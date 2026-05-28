@@ -1,0 +1,632 @@
+    index.html
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ELYRA • Nutrition AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Space+Grotesk:wght@500;600&amp;display=swap');
+        
+        :root {
+            --primary: 74 222 128;
+        }
+        
+        .tail-container {
+            font-family: 'Inter', system_ui, sans-serif;
+        }
+        
+        .logo-font {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+
+        .scan-button {
+            background: linear-gradient(135deg, rgb(74 222 128), rgb(34 197 151));
+        }
+
+        .meal-card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .score-circle {
+            background: conic-gradient(rgb(74 222 128) 0deg 320deg, #334155 320deg 360deg);
+        }
+
+        .nav-active {
+            color: rgb(74 222 128);
+            border-bottom: 3px solid rgb(74 222 128);
+        }
+    </style>
+</head>
+<body class="tail-container bg-zinc-950 text-white min-h-screen pb-20">
+    <!-- HEADER -->
+    <header class="fixed top-0 left-0 right-0 bg-zinc-950 border-b border-zinc-800 z-50">
+        <div class="max-w-xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div class="flex items-center gap-x-2">
+                <div class="w-8 h-8 bg-emerald-500 rounded-2xl flex items-center justify-center text-xl font-bold logo-font">E</div>
+                <div>
+                    <span class="logo-font text-2xl font-semibold tracking-tighter">ELYRA</span>
+                </div>
+            </div>
+            <div class="flex items-center gap-x-4">
+                <div onclick="showProfile()" class="flex items-center gap-x-2 cursor-pointer">
+                    <div class="text-right">
+                        <div class="text-sm font-medium" id="user-name">Alex Rivera</div>
+                        <div class="text-emerald-400 text-xs font-medium" id="user-level">ELITE</div>
+                    </div>
+                    <div class="w-9 h-9 bg-zinc-800 rounded-2xl overflow-hidden">
+                        <img src="https://picsum.photos/id/64/128/128" alt="Profile" class="w-full h-full object-cover">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="max-w-xl mx-auto pt-20">
+        
+        <!-- HOME DASHBOARD -->
+        <div id="page-home" class="page">
+            <div class="px-6 pt-8">
+                <h1 class="text-4xl font-semibold tracking-tighter mb-1">Good afternoon, Alex</h1>
+                <p class="text-zinc-400">Let's build better habits today</p>
+            </div>
+
+            <!-- DAILY SCORE -->
+            <div class="mx-6 mt-8 bg-zinc-900 rounded-3xl p-8 relative overflow-hidden">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <div class="text-emerald-400 text-sm font-medium tracking-widest">TODAY'S SCORE</div>
+                        <div id="daily-score" class="text-7xl font-bold tracking-tighter mt-2">87</div>
+                        <div class="text-zinc-400 text-lg">Balanced • High Protein</div>
+                    </div>
+                    <div class="relative w-32 h-32">
+                        <svg class="w-32 h-32 -rotate-12" viewBox="0 0 120 120">
+                            <circle cx="60" cy="60" r="52" fill="none" stroke="#27272a" stroke-width="14"/>
+                            <circle id="score-circle" cx="60" cy="60" r="52" fill="none" 
+                                    stroke="#4ade80" stroke-width="14" 
+                                    stroke-dasharray="327" stroke-dashoffset="65" 
+                                    stroke-linecap="round"/>
+                        </svg>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="text-center">
+                                <div class="text-5xl font-bold" id="score-big">87</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STREAK -->
+            <div class="grid grid-cols-2 gap-4 mx-6 mt-6">
+                <div class="bg-zinc-900 rounded-3xl p-6">
+                    <div class="flex items-center gap-x-3">
+                        <i class="fa-solid fa-fire text-orange-400 text-3xl"></i>
+                        <div>
+                            <div class="text-4xl font-bold" id="streak-count">12</div>
+                            <div class="text-zinc-400 text-sm">day streak</div>
+                        </div>
+                    </div>
+                </div>
+                <div onclick="goToScan()" class="scan-button rounded-3xl p-6 flex flex-col justify-between cursor-pointer hover:scale-105 active:scale-95 transition-all">
+                    <div class="flex justify-end">
+                        <i class="fa-solid fa-camera text-3xl"></i>
+                    </div>
+                    <div>
+                        <div class="font-semibold text-lg">Scan your meal</div>
+                        <div class="text-emerald-100 text-sm">Get instant feedback</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- WEEKLY PROGRESS -->
+            <div class="mx-6 mt-8">
+                <div class="flex justify-between items-baseline mb-4 px-1">
+                    <div class="font-medium">This week</div>
+                    <div onclick="goToStats()" class="text-emerald-400 text-sm flex items-center gap-x-1 cursor-pointer">
+                        Full stats <i class="fa-solid fa-arrow-right text-xs"></i>
+                    </div>
+                </div>
+                <div class="bg-zinc-900 rounded-3xl p-6">
+                    <canvas id="weekly-chart" height="110"></canvas>
+                </div>
+            </div>
+
+            <!-- RECENT MEALS -->
+            <div class="mx-6 mt-10">
+                <div class="flex justify-between items-center mb-4 px-1">
+                    <div class="font-medium">Recent meals</div>
+                </div>
+                <div id="recent-meals" class="space-y-4">
+                    <!-- Populated by JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- SCAN PAGE -->
+        <div id="page-scan" class="page hidden">
+            <div class="px-6 pt-8">
+                <h1 class="text-3xl font-semibold tracking-tight">Scan Meal</h1>
+                <p class="text-zinc-400">Take a photo of your plate</p>
+            </div>
+
+            <div class="mt-8 px-6">
+                <div id="upload-area" class="border-2 border-dashed border-zinc-700 rounded-3xl h-80 flex flex-col items-center justify-center cursor-pointer hover:border-emerald-400 transition-colors">
+                    <i class="fa-solid fa-cloud-arrow-up text-5xl text-zinc-500 mb-4"></i>
+                    <p class="text-zinc-400 font-medium">Tap to upload or take photo</p>
+                    <input type="file" id="meal-photo" accept="image/*" class="hidden">
+                </div>
+
+                <div id="preview-area" class="hidden">
+                    <div class="relative rounded-3xl overflow-hidden bg-zinc-900">
+                        <img id="photo-preview" class="w-full h-80 object-cover">
+                        <div onclick="retakePhoto()" class="absolute bottom-4 right-4 bg-black/70 text-white text-sm px-5 py-2 rounded-2xl flex items-center gap-x-2 cursor-pointer">
+                            <i class="fa-solid fa-rotate"></i>
+                            <span>Retake</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="px-6 mt-8">
+                <button onclick="analyzeMeal()" id="analyze-btn" 
+                        class="w-full py-5 bg-white text-black font-semibold rounded-3xl text-lg active:scale-95 transition-all hidden">
+                    ANALYZE WITH AI
+                </button>
+            </div>
+
+            <!-- ANALYSIS RESULT -->
+            <div id="analysis-result" class="hidden px-6 mt-8 space-y-8">
+                <div class="flex gap-x-6 items-center">
+                    <div id="result-score-circle" 
+                         class="w-28 h-28 rounded-2xl flex items-center justify-center text-5xl font-bold border-8 border-emerald-400">
+                        92
+                    </div>
+                    <div>
+                        <div class="text-emerald-400 text-xl font-medium" id="result-meal-name">Grilled Salmon Bowl</div>
+                        <div class="text-zinc-400" id="result-date">May 27 • 1:42 PM</div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-zinc-900 rounded-3xl p-5">
+                        <div class="text-emerald-400 text-xs tracking-widest mb-1">STRENGTHS</div>
+                        <ul id="strengths-list" class="text-sm space-y-2">
+                            <!-- JS populated -->
+                        </ul>
+                    </div>
+                    <div class="bg-zinc-900 rounded-3xl p-5">
+                        <div class="text-orange-400 text-xs tracking-widest mb-1">IMPROVEMENTS</div>
+                        <ul id="improvements-list" class="text-sm space-y-2">
+                            <!-- JS populated -->
+                        </ul>
+                    </div>
+                </div>
+
+                <div>
+                    <div class="text-xs tracking-widest text-zinc-400 mb-3">AI INSIGHT</div>
+                    <div id="ai-insight" class="bg-zinc-900 rounded-3xl p-6 text-sm leading-relaxed">
+                    </div>
+                </div>
+
+                <button onclick="saveMealAndReturn()" 
+                        class="w-full py-6 bg-emerald-500 hover:bg-emerald-600 transition-colors rounded-3xl font-semibold text-lg">
+                    SAVE TO JOURNAL
+                </button>
+            </div>
+        </div>
+
+        <!-- STATS PAGE -->
+        <div id="page-stats" class="page hidden px-6 pt-8">
+            <h1 class="text-3xl font-semibold tracking-tight mb-8">Your Progress</h1>
+            
+            <div class="bg-zinc-900 rounded-3xl p-6 mb-8">
+                <div class="flex justify-between mb-6">
+                    <div>
+                        <div class="text-5xl font-bold" id="avg-score">84</div>
+                        <div class="text-zinc-400">Avg. Score</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-5xl font-bold text-emerald-400" id="total-scans">47</div>
+                        <div class="text-zinc-400">Meals Analyzed</div>
+                    </div>
+                </div>
+                <canvas id="history-chart" height="180"></canvas>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4">
+                <div class="bg-zinc-900 rounded-3xl p-6">
+                    <div class="text-xs text-zinc-400">BEST DAY</div>
+                    <div class="text-4xl font-bold mt-2" id="best-day">98</div>
+                    <div class="text-sm text-emerald-400" id="best-date">May 22 • Salmon Bowl</div>
+                </div>
+                <div class="bg-zinc-900 rounded-3xl p-6">
+                    <div class="text-xs text-zinc-400">LONGEST STREAK</div>
+                    <div class="text-4xl font-bold mt-2">19</div>
+                    <div class="text-sm text-orange-400">days</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROFILE / SETTINGS -->
+        <div id="page-profile" class="page hidden px-6 pt-8">
+            <h1 class="text-3xl font-semibold tracking-tight mb-8">Profile</h1>
+            
+            <div class="bg-zinc-900 rounded-3xl p-8 flex flex-col items-center text-center mb-8">
+                <div class="w-28 h-28 rounded-3xl overflow-hidden mb-4">
+                    <img src="https://picsum.photos/id/64/128/128" class="w-full h-full object-cover">
+                </div>
+                <div class="text-2xl font-semibold">Alex Rivera</div>
+                <div class="text-emerald-400">Level 12 • Elite</div>
+            </div>
+
+            <div class="space-y-4">
+                <div class="bg-zinc-900 rounded-3xl p-6 flex items-center justify-between">
+                    <div class="flex items-center gap-x-4">
+                        <i class="fa-solid fa-trophy text-2xl text-amber-400"></i>
+                        <div>
+                            <div class="font-medium">Achievements</div>
+                            <div class="text-zinc-400 text-sm">8 unlocked</div>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right"></i>
+                </div>
+                
+                <div onclick="clearData()" class="bg-red-900/30 text-red-400 rounded-3xl p-6 text-center font-medium cursor-pointer">
+                    Reset All Data (Demo)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-zinc-900 border-t border-zinc-800 max-w-xl mx-auto">
+        <div class="flex justify-around items-center py-2 text-xs">
+            <div onclick="navigate(0)" class="nav-item flex flex-col items-center py-2 px-5 text-emerald-400 nav-active">
+                <i class="fa-solid fa-house text-xl"></i>
+                <span class="mt-1">Home</span>
+            </div>
+            <div onclick="navigate(1)" class="nav-item flex flex-col items-center py-2 px-5 text-zinc-400">
+                <i class="fa-solid fa-camera text-xl"></i>
+                <span class="mt-1">Scan</span>
+            </div>
+            <div onclick="navigate(2)" class="nav-item flex flex-col items-center py-2 px-5 text-zinc-400">
+                <i class="fa-solid fa-chart-simple text-xl"></i>
+                <span class="mt-1">Stats</span>
+            </div>
+            <div onclick="navigate(3)" class="nav-item flex flex-col items-center py-2 px-5 text-zinc-400">
+                <i class="fa-solid fa-user text-xl"></i>
+                <span class="mt-1">Me</span>
+            </div>
+        </div>
+    </nav>
+
+    <script>
+        // Tailwind script already loaded
+        function initTailwind() {
+            tailwind.config = {
+                content: [],
+                theme: {
+                    extend: {}
+                }
+            }
+        }
+
+        let currentPage = 0;
+        let meals = JSON.parse(localStorage.getItem('elyra_meals')) || [];
+        let streak = parseInt(localStorage.getItem('elyra_streak')) || 7;
+        let weeklyScores = JSON.parse(localStorage.getItem('elyra_weekly')) || [82, 91, 76, 88, 95, 84, 87];
+
+        const pages = ['page-home', 'page-scan', 'page-stats', 'page-profile'];
+
+        function navigate(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+            document.getElementById(pages[page]).classList.remove('hidden');
+            
+            document.querySelectorAll('.nav-item').forEach((el, i) => {
+                if (i === page) {
+                    el.classList.add('text-emerald-400', 'nav-active');
+                } else {
+                    el.classList.remove('text-emerald-400', 'nav-active');
+                }
+            });
+            
+            currentPage = page;
+            
+            if (page === 0) renderHome();
+            if (page === 2) renderStats();
+        }
+
+        function renderHome() {
+            // Daily score (mock last meal or average)
+            const latestScore = meals.length ? meals[meals.length-1].score : 87;
+            document.getElementById('daily-score').textContent = latestScore;
+            document.getElementById('score-big').textContent = latestScore;
+            
+            // Streak
+            document.getElementById('streak-count').textContent = streak;
+            
+            // Recent meals
+            const container = document.getElementById('recent-meals');
+            container.innerHTML = '';
+            
+            const recent = meals.slice(0, 3);
+            
+            recent.forEach(meal => {
+                const div = document.createElement('div');
+                div.className = "bg-zinc-900 rounded-3xl p-4 flex gap-x-4 meal-card";
+                div.innerHTML = `
+                    <img src="${meal.image || 'https://picsum.photos/id/201/80/80'}" class="w-16 h-16 object-cover rounded-2xl">
+                    <div class="flex-1">
+                        <div class="flex justify-between">
+                            <div class="font-medium">${meal.name}</div>
+                            <div class="text-emerald-400 font-bold">${meal.score}</div>
+                        </div>
+                        <div class="text-xs text-zinc-400">${meal.date}</div>
+                        <div class="text-sm text-zinc-400 line-clamp-2 mt-1">${meal.insight.substring(0, 90)}...</div>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+            
+            // Weekly chart
+            renderWeeklyChart();
+        }
+
+        let weeklyChartInstance = null;
+        
+        function renderWeeklyChart() {
+            const ctx = document.getElementById('weekly-chart');
+            if (weeklyChartInstance) weeklyChartInstance.destroy();
+            
+            weeklyChartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Score',
+                        data: weeklyScores,
+                        backgroundColor: '#4ade80',
+                        borderRadius: 8,
+                        barThickness: 28,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { min: 60, max: 100, grid: { color: '#27272a' }, ticks: { color: '#a1a1aa' } },
+                        x: { grid: { color: '#27272a' }, ticks: { color: '#a1a1aa' } }
+                    }
+                }
+            });
+        }
+
+        function goToScan() {
+            navigate(1);
+        }
+        
+        function goToStats() {
+            navigate(2);
+        }
+        
+        function showProfile() {
+            navigate(3);
+        }
+
+        // Photo handling
+        let currentPhotoData = null;
+        
+        document.getElementById('upload-area').addEventListener('click', () => {
+            document.getElementById('meal-photo').click();
+        });
+        
+        document.getElementById('meal-photo').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                currentPhotoData = ev.target.result;
+                document.getElementById('photo-preview').src = currentPhotoData;
+                document.getElementById('upload-area').classList.add('hidden');
+                document.getElementById('preview-area').classList.remove('hidden');
+                document.getElementById('analyze-btn').classList.remove('hidden');
+            };
+            reader.readAsDataURL(file);
+        });
+        
+        function retakePhoto() {
+            document.getElementById('upload-area').classList.remove('hidden');
+            document.getElementById('preview-area').classList.add('hidden');
+            document.getElementById('analyze-btn').classList.add('hidden');
+            document.getElementById('analysis-result').classList.add('hidden');
+            currentPhotoData = null;
+        }
+        
+        function analyzeMeal() {
+            if (!currentPhotoData) return;
+            
+            // Mock loading
+            const btn = document.getElementById('analyze-btn');
+            const originalText = btn.textContent;
+            btn.textContent = "ANALYZING WITH AI...";
+            btn.disabled = true;
+            
+            setTimeout(() => {
+                generateMockAnalysis();
+                btn.textContent = originalText;
+                btn.disabled = false;
+            }, 1650);
+        }
+        
+        function generateMockAnalysis() {
+            const mockMeals = [
+                {
+                    name: "Grilled Salmon Bowl",
+                    score: 94,
+                    strengths: ["Excellent omega-3s", "High quality protein", "Balanced macros"],
+                    improvements: ["Could use more leafy greens", "Add fermented foods for gut health"],
+                    insight: "This is an outstanding anti-inflammatory meal. The salmon provides incredible EPA/DHA. Adding spinach or arugula would complete the micronutrient profile."
+                },
+                {
+                    name: "Avocado Toast with Eggs",
+                    score: 81,
+                    strengths: ["Healthy fats from avocado", "Good quality protein from eggs"],
+                    improvements: ["Higher in sodium", "Add vegetables for volume and fiber"],
+                    insight: "Great start to the day. The healthy fats will keep you full. Try adding cherry tomatoes, cucumber, or microgreens for better nutrient density."
+                },
+                {
+                    name: "Chicken Stir Fry",
+                    score: 88,
+                    strengths: ["Lean protein", "Colorful vegetables"],
+                    improvements: ["Portion of rice could be reduced"],
+                    insight: "Excellent protein and vegetable balance. The variety of colors means you're getting a wide spectrum of phytonutrients."
+                }
+            ];
+            
+            const randomMeal = mockMeals[Math.floor(Math.random() * mockMeals.length)];
+            
+            // Fill result
+            document.getElementById('result-score-circle').textContent = randomMeal.score;
+            document.getElementById('result-score-circle').style.borderColor = randomMeal.score > 85 ? '#4ade80' : '#fbbf24';
+            document.getElementById('result-meal-name').textContent = randomMeal.name;
+            document.getElementById('result-date').textContent = "May 27 • " + new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+            
+            // Strengths
+            const strList = document.getElementById('strengths-list');
+            strList.innerHTML = '';
+            randomMeal.strengths.forEach(s => {
+                const li = document.createElement('li');
+                li.className = "flex items-start gap-x-2";
+                li.innerHTML = `<span class="text-emerald-400 mt-1">•</span> ${s}`;
+                strList.appendChild(li);
+            });
+            
+            // Improvements
+            const impList = document.getElementById('improvements-list');
+            impList.innerHTML = '';
+            randomMeal.improvements.forEach(i => {
+                const li = document.createElement('li');
+                li.className = "flex items-start gap-x-2";
+                li.innerHTML = `<span class="text-orange-400 mt-1">•</span> ${i}`;
+                impList.appendChild(li);
+            });
+            
+            document.getElementById('ai-insight').textContent = randomMeal.insight;
+            
+            // Show result
+            document.getElementById('analysis-result').classList.remove('hidden');
+            
+            // Save the current analysis data for later
+            window.pendingMeal = {
+                name: randomMeal.name,
+                score: randomMeal.score,
+                image: currentPhotoData,
+                date: new Date().toLocaleDateString('en-US', {month:'short', day:'numeric'}),
+                insight: randomMeal.insight
+            };
+        }
+        
+        function saveMealAndReturn() {
+            if (!window.pendingMeal) return;
+            
+            meals.unshift(window.pendingMeal);
+            localStorage.setItem('elyra_meals', JSON.stringify(meals));
+            
+            // Update streak
+            streak++;
+            localStorage.setItem('elyra_streak', streak);
+            
+            // Update weekly
+            weeklyScores[6] = Math.floor((weeklyScores[6] + window.pendingMeal.score) / 2);
+            localStorage.setItem('elyra_weekly', JSON.stringify(weeklyScores));
+            
+            // Reset scan page
+            retakePhoto();
+            document.getElementById('analysis-result').classList.add('hidden');
+            
+            // Go home
+            navigate(0);
+            renderHome();
+        }
+        
+        function renderStats() {
+            const avg = meals.length ? Math.round(meals.reduce((a, b) => a + b.score, 0) / meals.length) : 84;
+            document.getElementById('avg-score').textContent = avg;
+            document.getElementById('total-scans').textContent = meals.length || 47;
+            
+            // Mock best
+            document.getElementById('best-day').textContent = "98";
+            document.getElementById('best-date').textContent = "May 22 • Salmon";
+            
+            // History chart
+            const ctx = document.getElementById('history-chart');
+            if (window.historyChart) window.historyChart.destroy();
+            
+            const last7 = meals.length ? meals.slice(0, 7).map(m => m.score).reverse() : [78, 85, 92, 81, 95, 88, 91];
+            
+            window.historyChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+                    datasets: [{
+                        label: 'Daily Score',
+                        data: last7,
+                        borderColor: '#4ade80',
+                        tension: 0.4,
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { min: 60, max: 100, grid: { color: '#27272a' } },
+                        x: { grid: { color: '#27272a' } }
+                    }
+                }
+            });
+        }
+        
+        function clearData() {
+            if (confirm("Reset all demo data?")) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+        
+        // PWA install prompt simulation
+        function registerPWA() {
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.register('sw.js').catch(() => {});
+            }
+        }
+        
+        // Initialize app
+        function initApp() {
+            initTailwind();
+            navigate(0);
+            renderHome();
+            
+            // Make sure we have some demo data
+            if (meals.length === 0) {
+                meals = [
+                    { name: "Grilled Salmon Bowl", score: 94, date: "May 26", insight: "Outstanding omega-3 meal." },
+                    { name: "Avocado Toast", score: 81, date: "May 25", insight: "Great healthy fats." },
+                    { name: "Chicken Stir Fry", score: 88, date: "May 24", insight: "Excellent balance." }
+                ];
+                localStorage.setItem('elyra_meals', JSON.stringify(meals));
+            }
+            
+            // Fake manifest and service worker for demo
+            console.log('%cELYRA ready. Looks and feels premium.', 'color:#4ade80; font-size:13px');
+        }
+        
+        window.onload = initApp;
+    </script>
+</body>
+</html>
